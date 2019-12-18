@@ -90,11 +90,9 @@ class _NewTransactionFormState extends State<_NewTransactionFormWidget>{
                         labelText: 'Soldi *',
                       ),
                       keyboardType: TextInputType.number,
-                      onChanged: (String _value){
-                        _value = _value.replaceAll(',', '.');
-                      },
                       onSaved: (String _value){
-                        transactionCost = double.tryParse(_value);
+                        _value = _value.replaceAll(',', '.');
+                        transactionCost = double.tryParse(_value) ?? 0;
                       },
                     ),
                 ),

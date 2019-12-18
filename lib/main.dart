@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:bonfry_wallet/data/database.dart';
 import 'package:bonfry_wallet/data/enums/money_transaction_type.dart';
-import 'package:bonfry_wallet/data/pages/new_money_transaction_page.dart';
+import 'package:bonfry_wallet/pages/new_money_transaction_page.dart';
 import 'package:bonfry_wallet/widgets/page-title.dart';
 
 import 'data/models/money_transaction.dart';
