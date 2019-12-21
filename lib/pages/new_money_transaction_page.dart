@@ -90,6 +90,10 @@ class _NewTransactionFormState extends State<_NewTransactionFormWidget>{
                         labelText: 'Soldi *',
                       ),
                       keyboardType: TextInputType.number,
+                      validator: (String value){
+                        return RegExp(r'^\d*\.?\d*$').hasMatch(value.replaceAll(',', '.')) ? null :
+                          "Valore non valido";
+                      },
                       onSaved: (String _value){
                         _value = _value.replaceAll(',', '.');
                         transactionCost = double.tryParse(_value) ?? 0;

@@ -77,7 +77,8 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
   }
 
   Widget _buildRow(MoneyTransaction t) {
-    String transactionSimbol = t.transactionType == MoneyTransactionType.received? "+":"-";
+    String transactionSimbol = t.transactionType == MoneyTransactionType.received ? "+":"-";
+    String transactionText = t.transactionType == MoneyTransactionType.received ? "In entrata" : "In uscita";
 
     return Dismissible(
       key: Key(transactions.indexOf(t).toString()),
@@ -102,9 +103,9 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Text("IN ENTRATA"),
+                    Text(transactionText.toUpperCase()),
                     Text(
-                      "Transazione effettuata!",
+                      t.text,
                       textAlign : TextAlign.right,
                       style: TextStyle(
                         fontSize: 18,
@@ -121,7 +122,7 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
                 children: <Widget>[
                   Text("${new DateFormat('d MMM y').format(t.date).toUpperCase()}"),
                   Text(
-                    "$transactionSimbol 1200 €",
+                    "$transactionSimbol ${t.cost.toStringAsFixed(2)} €",
                     style: TextStyle(
                       fontWeight:FontWeight.w600,
                       fontSize: 22,
