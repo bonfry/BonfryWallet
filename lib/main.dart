@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:intl/intl_standalone.dart';
+
 import 'package:sqflite/sqflite.dart';
 import 'package:bonfry_wallet/data/database.dart';
 import 'package:bonfry_wallet/data/enums/money_transaction_type.dart';
@@ -6,6 +9,7 @@ import 'package:bonfry_wallet/pages/new_money_transaction_page.dart';
 import 'package:bonfry_wallet/widgets/page-title.dart';
 
 import 'data/models/money_transaction.dart';
+
 
 void main(){
   return runApp(MyApp());
@@ -88,13 +92,47 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
           SnackBar(content: Text("Transazione rimossa con successo"))
         );
       },
-      background: Container(color: Colors.red),
-      child: ListTile(
-        leading: t.transactionType == MoneyTransactionType.received ?
-            Icon(Icons.arrow_upward, color: Colors.green[600],):
-            Icon(Icons.arrow_downward, color: Colors.red[600]),
-        subtitle: Text("$transactionSimbol ${t.cost}€"),
-        title: Text( t.text ),
+      background: Container(color: Colors.red[800]),
+      child: GestureDetector(
+        child: Row(
+          children: <Widget>[
+            Expanded(
+              child:Container(
+                padding: EdgeInsets.only(left:10,right:15),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text("IN ENTRATA"),
+                    Text(
+                      "Transazione effettuata!",
+                      textAlign : TextAlign.right,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700
+                      ),
+                    ),
+                  ],
+                ) 
+              )
+            ),
+            Padding(
+              padding: EdgeInsets.only(left: 10,top: 15,right: 10, bottom: 15),
+              child: Column(
+                children: <Widget>[
+                  Text("${new DateFormat('d MMM y').format(t.date).toUpperCase()}"),
+                  Text(
+                    "$transactionSimbol 1200 €",
+                    style: TextStyle(
+                      fontWeight:FontWeight.w600,
+                      fontSize: 22,
+                      color: t.transactionType == MoneyTransactionType.received ?Colors.green[800]: Colors.red[800] 
+                    )
+                  )
+                ],
+              )
+            ),
+          ],
+        ),
       )
     );
   }
@@ -122,7 +160,6 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
         transactions = txList;
       });
     });
-
 
     return Scaffold(
       appBar: AppBar(

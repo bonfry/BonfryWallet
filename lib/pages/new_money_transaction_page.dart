@@ -6,7 +6,7 @@ class NewMoneyTransactionPage extends StatelessWidget{
   Widget build(BuildContext context){
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.indigo[900],
+        backgroundColor: Colors.indigo[700],
         title: Text("Nuova transazione"),
       ),
       body: _NewTransactionFormWidget(),
