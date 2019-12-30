@@ -3,11 +3,15 @@ import 'package:bonfry_wallet/data/enums/money_transaction_type.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:flutter/foundation.dart';
 
+import 'money_budget.dart';
+
 class MoneyTransaction{
   final int id;
   double cost;
   String text;
   final DateTime date;
+  int moneyBudgetId;
+  MoneyBudget moneyBudget;
   MoneyTransactionType transactionType;
 
   MoneyTransaction({
@@ -15,16 +19,18 @@ class MoneyTransaction{
     @required this.cost, 
     this.text, 
     @required this.date, 
-    @required this.transactionType 
+    @required this.transactionType, 
+    this.moneyBudgetId = 0
   });
-
+  
   Map<String,dynamic> toMap(){
     return {
       "id":id,
       "text":text,
       "cost":cost,
       "date":date.toIso8601String(),
-      "transactionType": transactionType.index
+      "transactionType": transactionType.index,
+      "moneyBudgetId": moneyBudgetId
     };
   }
 }
@@ -68,6 +74,7 @@ Future<List<MoneyTransaction>> getTransactionList() async {
       cost: mtm["cost"],
       text: mtm["text"],
       transactionType: MoneyTransactionType.values[mtm["transactionType"]],
-      date: DateTime.tryParse(mtm["date"])
+      date: DateTime.tryParse(mtm["date"]),
+      moneyBudgetId: mtm["moneyBudgetId"]
     )).toList();
 }
