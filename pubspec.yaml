@@ -11,7 +11,7 @@ description: App per segnare le tue transazioni
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.0.0+1
+version: 1.0.3+3
 
 environment:
   sdk: ">=2.1.0 <3.0.0"
@@ -26,7 +26,7 @@ dependencies:
   sqflite: ^1.1.8
   path: ^1.6.4
   intl: ^0.16.0
-
+  flutter_colorpicker: any
   
 dev_dependencies:
   flutter_test:
