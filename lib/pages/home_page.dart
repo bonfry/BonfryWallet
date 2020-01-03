@@ -1,11 +1,11 @@
-import 'package:bonfry_wallet/data/database.dart';
 import 'package:bonfry_wallet/data/enums/money_transaction_type.dart';
 import 'package:bonfry_wallet/data/models/money_budget.dart';
 import 'package:bonfry_wallet/data/models/money_transaction.dart';
+import 'package:bonfry_wallet/helpers/amount_helpers.dart';
+import 'package:bonfry_wallet/pages/settings_page.dart';
 import 'package:bonfry_wallet/widgets/page-title.dart';
 import 'package:bonfry_wallet/widgets/transaction_list_item.dart';
 import 'package:flutter/material.dart';
-import 'package:sqflite/sqflite.dart';
 
 import 'new_money_transaction_page.dart';
 
@@ -45,7 +45,7 @@ class _HomePageState extends State<HomePage>{
       return Future<bool>.delayed(Duration(seconds:3),() => true);
   }
 
-  double getTotalAmount(){
+  String getTotalAmount(){
     double totalAmount = 0;
 
     for(var t in moneyTransactions){
@@ -53,19 +53,7 @@ class _HomePageState extends State<HomePage>{
         t.cost : (-1)*t.cost;   
     }
 
-    return totalAmount;
-  }
-
-  void removeAllMoneyTransaction(){
-    DatabaseContext.getDatabase().then((Database db) async{
-      int changes = await  db.rawDelete("DELETE FROM money_transactions WHERE 1=1");
-
-      if(changes == moneyTransactions.length){
-        setState(() {
-          moneyTransactions = new List<MoneyTransaction>();
-        });
-      }
-    });
+    return getAmountStringFormatted(totalAmount);
   }
 
   @override
@@ -93,39 +81,31 @@ class _HomePageState extends State<HomePage>{
         title:Text("Bonfry Wallet"),
         backgroundColor: Colors.indigo[900],
         actions: <Widget>[
-          PopupMenuButton(
-           itemBuilder: (BuildContext context) => 
-            <PopupMenuEntry<int>>[
-              PopupMenuItem<int>(
-                value: 0,
-                child: Text("Cancella tutte le transazioni"),
-              )
-            ],
-            icon: Icon(Icons.more_vert),
-            onSelected: (num option){
-              switch(option){
-                case 0:
-                removeAllMoneyTransaction();
-                break;
-              }
+          IconButton(
+            icon: Icon(Icons.settings),
+            onPressed: (){
+                Navigator.push(context, MaterialPageRoute(builder: (builder) => SettingsPage()));
             },
-          )
+          ),
         ],
       ),
-      body: ListView(children: <Widget>[
-         TitleWidget("Bugdet Attuale"),
-          Container(
-            child: Column(
-              children: <Widget>[
-                Center(child: Text("${getTotalAmount().toStringAsFixed(2)} €",style: TextStyle(fontWeight: FontWeight.w600, fontSize: 45),)),
-              ],
+      body: Container(
+        child: ListView(
+          children: <Widget>[
+          TitleWidget("Bugdet Attuale"),
+            Container(
+              child: Column(
+                children: <Widget>[
+                  Center(child: Text("${getTotalAmount()}",style: TextStyle(fontWeight: FontWeight.w600, fontSize: 45),)),
+                ],
+              ),
             ),
-          ),
-          TitleWidget("Transazioni effettuate"),
-          Column(
-            children: buildListTiles(context),
-          )
-        ],
+            TitleWidget("Transazioni effettuate"),
+            Column(
+              children: buildListTiles(context),
+            )
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
@@ -186,9 +166,9 @@ class _HomePageState extends State<HomePage>{
           },
           direction: DismissDirection.endToStart,
           background: Container(
-            padding: EdgeInsets.symmetric(horizontal: 10 ),
+            padding: EdgeInsets.symmetric(horizontal: 4 ),
             alignment: AlignmentDirectional.centerEnd,
-            color: Colors.red[800],
+            color: Colors.red[900],
             child: Icon(Icons.delete, color: Colors.white,size: 35,)
           ),
           child: TransactionListItem(t)
