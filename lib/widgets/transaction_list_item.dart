@@ -1,5 +1,6 @@
 import 'package:bonfry_wallet/data/enums/money_transaction_type.dart';
 import 'package:bonfry_wallet/data/models/money_transaction.dart';
+import 'package:bonfry_wallet/helpers/amount_helpers.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -12,9 +13,9 @@ class TransactionListItem extends StatelessWidget{
   @override
   Widget build(BuildContext context) {
     String transactionSimbol = transaction.transactionType == MoneyTransactionType.received ? "+":"-";
-    return  Column(
-        children: <Widget>[
-          Row(
+    return  Container(
+      padding: EdgeInsets.symmetric(vertical: 8),
+        child: Row(
             children: <Widget>[
               Expanded(
                 child:Container(
@@ -26,7 +27,7 @@ class TransactionListItem extends StatelessWidget{
                       Text(transaction.moneyBudget.title.toUpperCase()),
                       Text(
                         transaction.text,
-                        textAlign : TextAlign.right,
+                        textAlign : TextAlign.left,
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w700
@@ -35,17 +36,17 @@ class TransactionListItem extends StatelessWidget{
                     ],
                   ),
                   decoration: BoxDecoration(
-                    border: Border(left: BorderSide(width: 12, color:transaction.moneyBudget.color))
+                    border: Border(left: BorderSide(width: 9, color:transaction.moneyBudget.color))
                   ), 
                 )
               ),
               Padding(
-                padding: EdgeInsets.only(left: 10,top: 15,right: 10, bottom: 15),
+                padding: EdgeInsets.symmetric(horizontal: 10),
                 child: Column(
                   children: <Widget>[
                     Text("${new DateFormat('d MMM y').format(transaction.date).toUpperCase()}"),
                     Text(
-                      "$transactionSimbol ${transaction.cost.toStringAsFixed(2)} €",
+                      "$transactionSimbol ${getAmountStringFormatted(transaction.cost)}",
                       style: TextStyle(
                         fontWeight:FontWeight.w600,
                         fontSize: 22,
@@ -58,8 +59,6 @@ class TransactionListItem extends StatelessWidget{
               ),
             ],
           ),
-          Divider(color: Colors.grey,height: 2),
-        ],
       );
   }
 }
