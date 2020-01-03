@@ -6,7 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'money_budget.dart';
 
 class MoneyTransaction{
-  final int id;
+  int id;
   double cost;
   String text;
   final DateTime date;
@@ -39,7 +39,7 @@ class MoneyTransaction{
 Future<void> addMoneyTransaction(MoneyTransaction moneyTx) async{
   Database database = await DatabaseContext.getDatabase();
 
-  await database.insert('money_transactions', moneyTx.toMap(),conflictAlgorithm: ConflictAlgorithm.replace);
+  moneyTx.id = await database.insert('money_transactions', moneyTx.toMap(),conflictAlgorithm: ConflictAlgorithm.replace);
 }
 
 Future<void> removeMoneyTransaction(int id) async{
@@ -75,6 +75,6 @@ Future<List<MoneyTransaction>> getTransactionList() async {
       text: mtm["text"],
       transactionType: MoneyTransactionType.values[mtm["transactionType"]],
       date: DateTime.tryParse(mtm["date"]),
-      moneyBudgetId: mtm["moneyBudgetId"]
+      moneyBudgetId: mtm["moneyBudgetId"] != null ? mtm["moneyBudgetId"] : 0
     )).toList();
 }

@@ -44,7 +44,8 @@ Future<MoneyBudget> findMoneyBudgetById(int id) async{
 Future<void> addMoneyBudget(MoneyBudget budget) async {
   Database database = await DatabaseContext.getDatabase();
 
-  await database.insert('money_budget', budget.toMap());
+  budget.id = await database.insert('money_budget', budget.toMap());
+
 }
 
 Future<void> removeMoneyBudget(int id) async {
