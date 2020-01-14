@@ -2,55 +2,37 @@ import 'package:bonfry_wallet/data/enums/money_transaction_type.dart';
 import 'package:bonfry_wallet/data/models/money_budget.dart';
 import 'package:bonfry_wallet/data/models/money_transaction.dart';
 import 'package:bonfry_wallet/helpers/amount_helpers.dart';
-import 'package:bonfry_wallet/pages/settings_page.dart';
+import 'package:bonfry_wallet/pages/settings_main_page.dart';
 import 'package:bonfry_wallet/widgets/page-title.dart';
 import 'package:bonfry_wallet/widgets/transaction_list_item.dart';
 import 'package:flutter/material.dart';
 
-import 'new_money_transaction_page.dart';
+import 'money_transaction_edit_page.dart';
+
 
 class HomePage extends StatefulWidget{
-  HomePage({Key key}): super(key:key);
+
+  final List<MoneyTransaction> moneyTransactions;
+
+  HomePage(this.moneyTransactions,{Key key}): super(key:key);
 
   @override
-  _HomePageState createState() => _HomePageState();
+  _HomePageState createState() => _HomePageState(moneyTransactions);
 }
 
 class _HomePageState extends State<HomePage>{
 
   final globalKey = GlobalKey<ScaffoldState>(); 
   List<MoneyTransaction> moneyTransactions;
-
-  Future<bool> getMoneyTransactionsFromDb() async{
-    var moneyBudgetsList = await getMoneyBudgetList();
-
-      if(moneyBudgetsList.length == 0){
-        moneyBudgetsList.add(MoneyBudget(
-          id:0,
-          title: "Bugget principale",
-          color: Colors.grey
-        ));
-
-        await addMoneyBudget(moneyBudgetsList[0]);
-      }
-
-      this.moneyTransactions = await getTransactionList().then((tList){
-        return tList.map((t){
-          t.moneyBudget = moneyBudgetsList
-            .firstWhere((b) => t.moneyBudgetId == b.id);
-            return t;
-          }).toList();
-      });
-
-      return Future<bool>.delayed(Duration(seconds:3),() => true);
-  }
+  
+  _HomePageState(this.moneyTransactions);
 
   String getTotalAmount(){
     double totalAmount = 0;
 
     for(var t in moneyTransactions){
       totalAmount += t.transactionType == MoneyTransactionType.received ?
-        t.cost : (-1)*t.cost;   
+        t.amount : (-1)*t.amount;   
     }
 
     return getAmountStringFormatted(totalAmount);
@@ -58,24 +40,6 @@ class _HomePageState extends State<HomePage>{
 
   @override
   Widget build(BuildContext context){
-    return FutureBuilder<bool>(
-      future: getMoneyTransactionsFromDb(),
-      builder: (BuildContext context, AsyncSnapshot<bool> snapshot){
-        if(snapshot.hasData && snapshot.data ){
-          return Scaffold(
-            key: globalKey,
-            body: Builder(
-              builder: buildSuccessfulScaffold,
-            )
-          );
-        }else{
-          return waitingLoadScaffold();
-        }
-      },
-    );
-  }
-
-  Widget buildSuccessfulScaffold(BuildContext context){
     return Scaffold(
       appBar: AppBar(
         title:Text("Bonfry Wallet"),
@@ -83,8 +47,14 @@ class _HomePageState extends State<HomePage>{
         actions: <Widget>[
           IconButton(
             icon: Icon(Icons.settings),
-            onPressed: (){
-                Navigator.push(context, MaterialPageRoute(builder: (builder) => SettingsPage()));
+            onPressed: () async{
+              bool needtoResetTransition = await Navigator.push(context, MaterialPageRoute(builder: (builder) => SettingsPage()));
+            
+              if(needtoResetTransition){
+                setState(() {
+                  moneyTransactions.clear();
+                });
+              }
             },
           ),
         ],
@@ -92,7 +62,7 @@ class _HomePageState extends State<HomePage>{
       body: Container(
         child: ListView(
           children: <Widget>[
-          TitleWidget("Bugdet Attuale"),
+          TitleWidget("Budget Attuale"),
             Container(
               child: Column(
                 children: <Widget>[
@@ -113,14 +83,11 @@ class _HomePageState extends State<HomePage>{
 
           List<MoneyBudget> budgetListToSend = await getMoneyBudgetList();          
 
-          MoneyTransaction newMoneyTransaction = await Navigator.push(
-            context, 
-            MaterialPageRoute(builder: (builder) => NewMoneyTransactionPage(budgetListToSend))
-          );
+          var response = await goToMoneyTransactionEdit(context:context, budgets:budgetListToSend);
 
-          if(newMoneyTransaction != null){
+          if(response.responseType == MoneyTransactionEditResponseType.created){
             setState(() {
-              moneyTransactions.add(newMoneyTransaction);
+              moneyTransactions.add(response.data);
             });
           }
           
@@ -171,28 +138,26 @@ class _HomePageState extends State<HomePage>{
             color: Colors.red[900],
             child: Icon(Icons.delete, color: Colors.white,size: 35,)
           ),
-          child: TransactionListItem(t)
+          child: GestureDetector(
+            onTap: () async {
+
+              List<MoneyBudget> budgetListToSend = await getMoneyBudgetList();          
+              
+              var response = await goToMoneyTransactionEdit(context:context, budgets:budgetListToSend,transaction: t);
+
+              if(response.responseType == MoneyTransactionEditResponseType.updated){
+                setState(() {
+                  t = response.data;
+                });
+              }else if(response.responseType == MoneyTransactionEditResponseType.removed){
+                setState(() {
+                  moneyTransactions.remove(t);
+                });
+              }
+            },
+            child: TransactionListItem(t),
+          )
         );
       }).toList();
   }
-}
-
-Widget waitingLoadScaffold(){
-  return Scaffold(
-    body: Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Container(
-            padding: EdgeInsets.all(8),
-            child: CircularProgressIndicator(),
-          ),
-          Text(
-            "Sto caricando le transazioni...", 
-            style: TextStyle(fontSize: 22)
-          )
-        ],
-      ),
-    ),
-  );
 }

@@ -2,6 +2,21 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'dart:async';
 
+
+
+class DatabaseContext{
+  static Future<Database> _db;
+
+  static Future<Database> getDatabase() async{
+    if(_db == null){
+      _db = importDatabase();
+    }
+
+    return _db;
+  }
+}
+
+
 Future<Database> importDatabase() async{
   return openDatabase(
     join(await getDatabasesPath(), 'application_database.db'),
@@ -50,11 +65,4 @@ Future<Database> importDatabase() async{
     }
   );
   
-}
-
-
-class DatabaseContext{
-  static Future<Database> _db = importDatabase();
-
-  static Future<Database> getDatabase() =>  _db;
 }
