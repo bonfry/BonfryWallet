@@ -46,7 +46,7 @@ class TransactionListItem extends StatelessWidget{
                   children: <Widget>[
                     Text("${new DateFormat('d MMM y').format(transaction.date).toUpperCase()}"),
                     Text(
-                      "$transactionSimbol ${getAmountStringFormatted(transaction.cost)}",
+                      "$transactionSimbol ${getAmountStringFormatted(transaction.amount)}",
                       style: TextStyle(
                         fontWeight:FontWeight.w600,
                         fontSize: 22,

@@ -52,6 +52,12 @@ Future<void> removeMoneyBudget(int id) async {
   Database database = await DatabaseContext.getDatabase();
   
   await database.delete(
+    'money_transactions',
+    where: "moneyBudgetId = ?",
+    whereArgs: [id]
+  );
+  
+  await database.delete(
     'money_budget',
     where: "id = ?",
     whereArgs: [id]);
