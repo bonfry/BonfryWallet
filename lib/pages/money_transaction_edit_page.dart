@@ -177,7 +177,7 @@ class _TransactionEditFormState extends State<_TransactionEditForm>{
                 decoration: const InputDecoration(
                   icon: Icon(Icons.euro_symbol),
                   hintText: 'Quanto hai ricevuto speso?',
-                  labelText: 'Soldi *',
+                  labelText: 'Importo *',
                 ),
                 keyboardType: TextInputType.number,
                 validator: (String value){
@@ -289,6 +289,10 @@ class _TransactionEditFormState extends State<_TransactionEditForm>{
                     data: transaction
                   ));
 
+                }else if(transaction.transactionType == null){
+                  setState(() {
+                    textFormError = "Non hai inserito la tipologia di transazione";
+                  });
                 }else if(transaction.moneyBudget == null){
                   setState(() {
                     textFormError = "Budget non inserito";

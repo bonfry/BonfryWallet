@@ -48,13 +48,14 @@ class _HomePageState extends State<HomePage>{
           IconButton(
             icon: Icon(Icons.settings),
             onPressed: () async{
-              bool needtoResetTransition = await Navigator.push(context, MaterialPageRoute(builder: (builder) => SettingsPage()));
-            
-              if(needtoResetTransition){
-                setState(() {
-                  moneyTransactions.clear();
-                });
-              }
+              var mustResetTransition = await Navigator.push(context, MaterialPageRoute(builder: (builder) => SettingsPage()));
+
+              var transactions = await getTransactionList();
+
+              setState(() {
+                this.moneyTransactions = transactions;
+              });
+
             },
           ),
         ],

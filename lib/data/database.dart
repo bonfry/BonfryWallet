@@ -2,8 +2,6 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'dart:async';
 
-
-
 class DatabaseContext{
   static Future<Database> _db;
 
@@ -16,11 +14,10 @@ class DatabaseContext{
   }
 }
 
-
 Future<Database> importDatabase() async{
   return openDatabase(
     join(await getDatabasesPath(), 'application_database.db'),
-    version: 14,
+    version: 15,
     onCreate: (db,version) async{
       await db.execute(
         "CREATE TABLE money_budget("+
@@ -41,7 +38,6 @@ Future<Database> importDatabase() async{
 
       await db.rawUpdate("UPDATE money_transactions SET moneyBudgetId = 0 where moneyBudgetId = NULL");
       await db.rawInsert("INSERT INTO money_budget(id,title,color) values(?,?,?)",[0,"Budget principale",4288585374]);
-
     },
     onUpgrade: (db, oldVersion, newVersion) async{
       if(oldVersion < 11)  {

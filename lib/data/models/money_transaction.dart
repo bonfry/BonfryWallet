@@ -19,7 +19,8 @@ class MoneyTransaction{
     this.text, 
     this.date, 
     this.transactionType, 
-    this.moneyBudgetId = 0
+    this.moneyBudgetId = 0,
+    this.moneyBudget
   });
   
   Map<String,dynamic> toMap(){
@@ -66,14 +67,18 @@ Future<List<MoneyTransaction>> getTransactionList() async {
   final db = await DatabaseContext.getDatabase();
 
   final List<Map<String, dynamic>> moneyTransactionMaps = await db.query('money_transactions');
+  final moneyBudgets = await getMoneyBudgetList();
 
-  return moneyTransactionMaps
-    .map((mtm) => MoneyTransaction(
-      id: mtm["id"],
-      amount: mtm["cost"],
-      text: mtm["text"],
-      transactionType: MoneyTransactionType.values[mtm["transactionType"]],
-      date: DateTime.tryParse(mtm["date"]),
-      moneyBudgetId: mtm["moneyBudgetId"] != null ? mtm["moneyBudgetId"] : 0
-    )).toList();
+  return moneyTransactionMaps.map((mtm){
+    var moneyBudgetId = mtm["moneyBudgetId"] != null ? mtm["moneyBudgetId"] : 0;
+    return MoneyTransaction(
+        id: mtm["id"],
+        amount: mtm["cost"],
+        text: mtm["text"],
+        transactionType: MoneyTransactionType.values[mtm["transactionType"]],
+        date: DateTime.tryParse(mtm["date"]),
+        moneyBudgetId: moneyBudgetId,
+        moneyBudget: moneyBudgets.firstWhere((mb) => mb.id == moneyBudgetId)
+    );
+  }).toList();
 }

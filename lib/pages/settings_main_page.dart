@@ -1,21 +1,12 @@
 import 'package:bonfry_wallet/data/database.dart';
 import 'package:bonfry_wallet/pages/settings_budget_page.dart';
+import 'package:bonfry_wallet/widgets/option_element_list.dart';
 import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
 
+import 'backup_restore_page.dart';
 import 'credits_page.dart';
 
-
-typedef VoidCallbackWithContext = void Function(BuildContext);
-
-class _OptionElement{
-  final VoidCallbackWithContext callback;
-  final String text;
-  final String subText;
-  IconData icon;
-
-  _OptionElement(this.text,{this.callback, this.icon, this.subText,});
-}
 
 class SettingsPage extends StatefulWidget{
 
@@ -24,32 +15,40 @@ class SettingsPage extends StatefulWidget{
 }
 
 class SettingsPageState extends State<SettingsPage>{
-  bool hasResettedTransactions = false;
+  bool mustResetTransaction = false;
 
   static GlobalKey<ScaffoldState> scaffoldKey =  GlobalKey<ScaffoldState>();
 
-  final List<_OptionElement> options = <_OptionElement>[
-    _OptionElement(
+  final List<OptionElement> options = <OptionElement>[
+    OptionElement(
       "Cancella tutte le transazioni",
       subText: "Elimina in un colpo solo",
       icon:Icons.delete_forever, 
       callback: (BuildContext context) => 
         _deleteAllTransactionCb(context,scaffoldKey)
       ),
-    _OptionElement(
+    OptionElement(
       "Budget inseriti",
       subText: "Per modificare i tuoi budget",
       icon:Icons.account_balance_wallet, 
       callback:(BuildContext context){
        Navigator.push(context, MaterialPageRoute(builder: (builder) => BudgetSettingsPage()));
     }),
-    _OptionElement(
-      "Info & Crediti",
-      subText: "Informazioni su Bonfry Wallet",
-      icon:Icons.info, 
-      callback:(BuildContext context){
-       Navigator.push(context, MaterialPageRoute(builder: (builder) => CreditsPage()));
-    })
+    OptionElement(
+        "Backup e ripristino",
+        subText: "Salva e ripristina i tuoi dati nel modo che preferisci",
+        icon:Icons.restore,
+        callback:(BuildContext context){
+          Navigator.push(context, MaterialPageRoute(builder: (builder) => BackupRestorePage()));
+        }),
+    OptionElement(
+        "Info & Crediti",
+        subText: "Informazioni su Bonfry Wallet",
+        icon:Icons.info,
+        callback:(BuildContext context){
+          Navigator.push(context, MaterialPageRoute(builder: (builder) => CreditsPage()));
+        }),
+
   ];
 
   @override
@@ -60,36 +59,20 @@ class SettingsPageState extends State<SettingsPage>{
         leading:IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: (){
-            Navigator.pop(context,hasResettedTransactions);
+            Navigator.pop(context,mustResetTransaction);
           }
         ),
         backgroundColor: Colors.indigo[700],
         title: Text("Impostazioni"),
       ),
-      body: ListView.builder(
-        itemCount: options.length,
-        itemBuilder: (context, index){
-          return ListTile(
-            contentPadding: EdgeInsets.symmetric(horizontal: 12),
-            leading: options[index].icon != null? Container(
-              padding: EdgeInsets.all(9),
-              decoration: BoxDecoration(
-                color: Colors.indigo[700],
-                shape: BoxShape.circle
-              ),
-              child: Icon(options[index].icon,color: Colors.white,),
-            ): null,
-            title: Text(options[index].text,style: TextStyle(fontWeight: FontWeight.w700,fontSize: 16),),
-            subtitle:  Text(options[index].subText),
-            onTap: (){
-              options[index].callback(context);
-
-              if(index == 0){
-                hasResettedTransactions = true;
-              }
-            },
-          );
-        },
+      body:
+      OptionElementList(
+          children: options,
+          onChildTap: (context,index){
+            if(index == 0){
+              mustResetTransaction = true;
+            }
+          },
       )
     );
   }
