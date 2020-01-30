@@ -1,7 +1,7 @@
 name: bonfry_wallet
 description: App per segnare le tue transazioni
 
-version: 1.1.8+7
+version: 1.2.0+8
 
 environment:
   sdk: ">=2.1.0 <3.0.0"
