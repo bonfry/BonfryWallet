@@ -289,11 +289,15 @@ class _TransactionEditFormState extends State<_TransactionEditForm>{
                     data: transaction
                   ));
 
-                }else if(transaction.transactionType == null){
+                }
+
+                if(textFormError == null && transaction.transactionType == null){
                   setState(() {
                     textFormError = "Non hai inserito la tipologia di transazione";
                   });
-                }else if(transaction.moneyBudget == null){
+                }
+
+                if(textFormError == null && transaction.moneyBudget == null){
                   setState(() {
                     textFormError = "Budget non inserito";
                   });
