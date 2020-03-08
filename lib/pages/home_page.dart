@@ -1,105 +1,118 @@
 import 'package:bonfry_wallet/data/enums/money_transaction_type.dart';
-import 'package:bonfry_wallet/data/models/money_budget.dart';
-import 'package:bonfry_wallet/data/models/money_transaction.dart';
+import 'package:bonfry_wallet/data/model/model.dart';
+import 'package:bonfry_wallet/helpers/ColorPalette.dart';
 import 'package:bonfry_wallet/helpers/amount_helpers.dart';
-import 'package:bonfry_wallet/pages/settings_main_page.dart';
+import 'package:bonfry_wallet/widgets/page_bar.dart';
 import 'package:bonfry_wallet/widgets/page-title.dart';
 import 'package:bonfry_wallet/widgets/transaction_list_item.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_icons/flutter_icons.dart';
 
 import 'money_transaction_edit_page.dart';
 
-
-class HomePage extends StatefulWidget{
-
-  final List<MoneyTransaction> moneyTransactions;
-
-  HomePage(this.moneyTransactions,{Key key}): super(key:key);
+class HomePage extends StatefulWidget {
+  HomePage({Key key}) : super(key: key);
 
   @override
-  _HomePageState createState() => _HomePageState(moneyTransactions);
+  _HomePageState createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage>{
+class _HomePageData {
+  final List<MoneyBudget> budgets;
+  final List<MoneyTransaction> transactions;
 
-  final globalKey = GlobalKey<ScaffoldState>(); 
+  _HomePageData(this.budgets, this.transactions);
+}
+
+class _HomePageState extends State<HomePage> {
   List<MoneyTransaction> moneyTransactions;
-  
-  _HomePageState(this.moneyTransactions);
+  List<MoneyBudget> moneyBudget;
 
-  String getTotalAmount(){
+  String getTotalAmount() {
     double totalAmount = 0;
 
-    for(var t in moneyTransactions){
-      totalAmount += t.transactionType == MoneyTransactionType.received ?
-        t.amount : (-1)*t.amount;   
+    for (var t in moneyTransactions) {
+      totalAmount += t.transactionType == MoneyTransactionType.received.index
+          ? t.import
+          : (-1) * t.import;
     }
 
     return getAmountStringFormatted(totalAmount);
   }
 
+  Future<_HomePageData> importTransactions() async {
+    return _HomePageData(await MoneyBudget().select().toList(),
+        await MoneyTransaction().select().toList());
+  }
+
   @override
-  Widget build(BuildContext context){
-    return Scaffold(
-      appBar: AppBar(
-        title:Text("Bonfry Wallet"),
-        backgroundColor: Colors.indigo[900],
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.settings),
-            onPressed: () async{
-              var mustResetTransition = await Navigator.push(context, MaterialPageRoute(builder: (builder) => SettingsPage()));
+  Widget build(BuildContext context) {
+    return FutureBuilder<_HomePageData>(
+        future: importTransactions(),
+        initialData: _HomePageData([], []),
+        builder: (context, snapshot) {
+          moneyTransactions = snapshot.data.transactions;
+          moneyBudget = snapshot.data.budgets;
 
-              var transactions = await getTransactionList();
-
-              setState(() {
-                this.moneyTransactions = transactions;
-              });
-
-            },
-          ),
-        ],
-      ),
-      body: Container(
-        child: ListView(
-          children: <Widget>[
-          TitleWidget("Budget Attuale"),
-            Container(
-              child: Column(
+          return Scaffold(
+            appBar: BWalletAppBar(
+                context: context,
+                leading: Container(
+                  padding: EdgeInsets.all(16),
+                  alignment: Alignment.center,
+                  child: Image(
+                      image: AssetImage('images/home_icon.png'),
+                      fit: BoxFit.fill),
+                ),
+                label: 'my wallet'),
+            body: Container(
+              child: ListView(
                 children: <Widget>[
-                  Center(child: Text("${getTotalAmount()}",style: TextStyle(fontWeight: FontWeight.w600, fontSize: 45),)),
+                  TitleWidget("Budget Attuale"),
+                  Container(
+                    child: Column(
+                      children: <Widget>[
+                        Center(
+                            child: Text(
+                          "${getTotalAmount()}",
+                          style: TextStyle(
+                              fontWeight: FontWeight.w600, fontSize: 45),
+                        )),
+                      ],
+                    ),
+                  ),
+                  TitleWidget("Transazioni effettuate"),
+                  Column(
+                    children: buildListTiles(context),
+                  )
                 ],
               ),
             ),
-            TitleWidget("Transazioni effettuate"),
-            Column(
-              children: buildListTiles(context),
-            )
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.add),
-        onPressed: () async{
+            floatingActionButton: FloatingActionButton(
+              child: Icon(Icons.add),
+              backgroundColor: BonfryWalletColorPalette.blue1,
+              onPressed: () async {
+                List<MoneyBudget> budgetListToSend =
+                    await MoneyBudget().select().toList();
 
-          List<MoneyBudget> budgetListToSend = await getMoneyBudgetList();          
+                var response = await goToMoneyTransactionEdit(
+                    context: context, budgets: budgetListToSend);
 
-          var response = await goToMoneyTransactionEdit(context:context, budgets:budgetListToSend);
-
-          if(response.responseType == MoneyTransactionEditResponseType.created){
-            setState(() {
-              moneyTransactions.add(response.data);
-            });
-          }
-          
-        },
-      ),
-    );
+                if (response.responseType ==
+                    MoneyTransactionEditResponseType.created) {
+                  setState(() {
+                    moneyTransactions.add(response.data);
+                  });
+                }
+              },
+            ),
+          );
+        });
   }
 
-  List<Widget> buildListTiles(BuildContext context){
-    return moneyTransactions.map((t){
-        return Dismissible(
+  List<Widget> buildListTiles(BuildContext context) {
+    return moneyTransactions.map((t) {
+      return Dismissible(
           key: Key(moneyTransactions.indexOf(t).toString()),
           confirmDismiss: (DismissDirection direction) async {
             return showDialog(
@@ -110,12 +123,11 @@ class _HomePageState extends State<HomePage>{
                   content: const Text("Vuoi eliminare questa transazione?"),
                   actions: <Widget>[
                     FlatButton(
-                      onPressed: () async {
-                        await removeMoneyTransaction(t.id);
-                        Navigator.of(context).pop(true);
-                      },
-                      child: const Text("CANCELLA")
-                    ),
+                        onPressed: () async {
+                          await t.delete(true);
+                          Navigator.of(context).pop(true);
+                        },
+                        child: const Text("CANCELLA")),
                     FlatButton(
                       onPressed: () => Navigator.of(context).pop(false),
                       child: const Text("ANNULLA"),
@@ -125,40 +137,48 @@ class _HomePageState extends State<HomePage>{
               },
             );
           },
-          onDismissed: (direction) async{
+          onDismissed: (direction) async {
             setState(() {
               moneyTransactions.remove(t);
             });
 
-            globalKey.currentState.showSnackBar(SnackBar(content: Text("Elemento eliminato"),));
+            /*
+            * globalKey.currentState.showSnackBar(SnackBar(
+              content: Text("Elemento eliminato"),
+            ));*/
           },
           direction: DismissDirection.endToStart,
           background: Container(
-            padding: EdgeInsets.symmetric(horizontal: 4 ),
-            alignment: AlignmentDirectional.centerEnd,
-            color: Colors.red[900],
-            child: Icon(Icons.delete, color: Colors.white,size: 35,)
-          ),
+              padding: EdgeInsets.symmetric(horizontal: 4),
+              alignment: AlignmentDirectional.centerEnd,
+              color: Colors.red[900],
+              child: Icon(
+                Icons.delete,
+                color: Colors.white,
+                size: 35,
+              )),
           child: GestureDetector(
             onTap: () async {
+              List<MoneyBudget> budgetListToSend =
+                  await MoneyBudget().select().toList();
 
-              List<MoneyBudget> budgetListToSend = await getMoneyBudgetList();          
-              
-              var response = await goToMoneyTransactionEdit(context:context, budgets:budgetListToSend,transaction: t);
+              var response = await goToMoneyTransactionEdit(
+                  context: context, budgets: budgetListToSend, transaction: t);
 
-              if(response.responseType == MoneyTransactionEditResponseType.updated){
+              if (response.responseType ==
+                  MoneyTransactionEditResponseType.updated) {
                 setState(() {
                   t = response.data;
                 });
-              }else if(response.responseType == MoneyTransactionEditResponseType.removed){
+              } else if (response.responseType ==
+                  MoneyTransactionEditResponseType.removed) {
                 setState(() {
                   moneyTransactions.remove(t);
                 });
               }
             },
             child: TransactionListItem(t),
-          )
-        );
-      }).toList();
+          ));
+    }).toList();
   }
 }

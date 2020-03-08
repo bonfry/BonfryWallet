@@ -1,32 +1,27 @@
 import 'dart:convert';
 
-import 'package:bonfry_wallet/data/database.dart';
+import 'model/model.dart';
 
-class DatabaseManager{
-  static Future<String>  backupDatabaseToJson() async{
-    var dataMap = Map<String,List<Map<String,dynamic>>>();
-    var db = await DatabaseContext.getDatabase();
+class DataBackupManager {
+  static Future<String> backupDatabaseToJson() async {
+    var dataMap = Map<String, List<Map<String, dynamic>>>();
 
-    dataMap["money_transactions"] = await db.query("money_transactions");
-    dataMap["money_budget"] = await db.query("money_budget");
+    dataMap["money_transactions"] =
+        await MoneyTransaction().select().toMapList();
+    dataMap["money_budget"] = await MoneyBudget().select().toMapList();
 
     return json.encode(dataMap);
   }
 
-  static Future<void> restoreDatabaseFromJson(String jsonText) async{
-    var db = await DatabaseContext.getDatabase();
-    var databaseBackup =  json.decode(jsonText);
+  static Future<void> restoreDatabaseFromJson(String jsonText) async {
+    jsonText.replaceAll('cost', 'import');
 
-    await db.delete("money_budget");
-    
-    for(var mBudget in databaseBackup["money_budget"]){
-      await db.insert("money_budget", mBudget);
-    }
+    var databaseBackup = json.decode(jsonText);
 
-    await db.delete("money_transactions");
+    await MoneyTransaction().delete(true);
+    MoneyTransaction.fromMapList(databaseBackup['money_transactions']);
 
-    for(var mTransaction in databaseBackup["money_transactions"]){
-      await db.insert("money_transactions", mTransaction);
-    }
+    await MoneyBudget().delete(true);
+    MoneyTransaction.fromMapList(databaseBackup['money_budget']);
   }
 }
